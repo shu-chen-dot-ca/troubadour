@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Terminal">
+<meta name="theme-color" content="#0e1015">
+<title>Terminal</title>
+<link rel="stylesheet" href="/desktop/vendor/xterm.css">
+<style>
+  :root { color-scheme: dark; --bg: #0e1015; --fg: #e6e6ea; --button: #232833; --border: #2c313b; --primary: oklch(0.623 0.214 259.815); }
+  html { height: 100%; background: var(--bg); touch-action: manipulation; }
+  body {
+    position: fixed; top: 0; left: 0; right: 0; height: 100%; margin: 0;
+    display: flex; flex-direction: column; overflow: hidden; background: var(--bg); color: var(--fg);
+    font: 14px/1.4 system-ui, -apple-system, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  #terminal {
+    flex: 1; min-height: 0;
+    margin: calc(env(safe-area-inset-top) + 4px) calc(env(safe-area-inset-right) + 4px) 0 calc(env(safe-area-inset-left) + 4px);
+  }
+  #keys {
+    flex: none; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x;
+    padding: 5px calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 5px) calc(env(safe-area-inset-left) + 8px);
+    background: #161920; border-top: 1px solid var(--border);
+  }
+  #keys::-webkit-scrollbar { display: none; }
+  /* The phone's own keyboard covers the bottom: no gap for the home bar. */
+  body.typing #keys { padding-bottom: 5px; }
+  #keys button {
+    flex: none; min-width: 40px; height: 34px; padding: 0 10px; font: inherit; font-weight: 500; color: var(--fg);
+    background: var(--button); border: 1px solid var(--border); border-radius: 8px; touch-action: manipulation;
+  }
+  #keys button.on { color: #fff; background: var(--primary); border-color: transparent; }
+</style>
+</head>
+<body>
+<div id="terminal"></div>
+<div id="keys">
+  <button id="desktop">Desktop</button>
+  <button data-key="Escape">Esc</button>
+  <button data-key="Tab">Tab</button>
+  <button id="ctrl">Ctrl</button>
+  <button id="alt">Alt</button>
+  <button data-key="CtrlC">^C</button>
+  <button data-key="ArrowLeft">←</button>
+  <button data-key="ArrowUp">↑</button>
+  <button data-key="ArrowDown">↓</button>
+  <button data-key="ArrowRight">→</button>
+  <button data-key="|">|</button>
+  <button data-key="~">~</button>
+  <button data-key="/">/</button>
+  <button data-key="-">-</button>
+  <button id="smaller">A−</button>
+  <button id="bigger">A+</button>
+</div>
+<script src="/desktop/vendor/xterm.js"></script>
+<script src="/desktop/vendor/addon-fit.js"></script>
+<script src="/desktop/terminal.js"></script>
+</body>
+</html>

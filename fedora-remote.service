@@ -1,0 +1,13 @@
+[Unit]
+Description=Desktop: this computer's screen, mouse, keyboard and a terminal from the phone (/home/admin/dev/fedora_remote)
+
+[Service]
+WorkingDirectory=/home/admin/dev/fedora_remote
+ExecStart=/usr/bin/python3 /home/admin/dev/fedora_remote/server.py
+Restart=always
+RestartSec=5
+
+# default.target, not the GNOME session's: with lingering on (loginctl enable-linger) it starts at boot, before
+# anyone logs in, so the terminal works at the login screen too. The screen view works once GNOME runs.
+[Install]
+WantedBy=default.target

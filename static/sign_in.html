@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Desktop">
+<title>Sign in · Desktop</title>
+<!-- Seraph's Sign in page (backend/remote_access_api.py), for the desktop: the same passkey, the same look. -->
+<style>
+  :root { color-scheme: light dark; --bg: #faf9f7; --fg: #211e1a; --muted: #6f6a62; --card: #ffffff; --border: #e5e0d8; --primary: oklch(0.546 0.245 262.881); --error: #c42b1c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0e1015; --fg: #e6e6ea; --muted: #8b8b94; --card: #161920; --border: #262a33; --primary: oklch(0.623 0.214 259.815); --error: #f87171; }
+  }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, sans-serif; }
+  main { box-sizing: border-box; width: min(360px, calc(100vw - 32px)); padding: 28px 24px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+  h1 { margin: 0 0 6px; font-size: 20px; }
+  p { margin: 0 0 18px; color: var(--muted); }
+  button { width: 100%; padding: 11px; font: inherit; font-weight: 600; color: #fff; background: var(--primary); border: 0; border-radius: 8px; }
+  button:disabled { opacity: 0.6; }
+  #message { min-height: 1.5em; margin-top: 14px; color: var(--error); }
+</style>
+<main>
+  <h1>Sign in to Desktop</h1>
+  <p>This computer's screen, mouse and keyboard. Use the passkey this device has for Seraph.</p>
+  <button id="go" disabled>Sign in with passkey</button>
+  <div id="message"></div>
+</main>
+<script>
+const b64 = (buffer) => btoa(String.fromCharCode(...new Uint8Array(buffer))).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+const unb64 = (text) => Uint8Array.from(atob(text.replaceAll("-", "+").replaceAll("_", "/")), (char) => char.charCodeAt(0));
+const button = document.getElementById("go");
+const message = document.getElementById("message");
+let options = null;
+
+// A challenge as soon as the page opens: Safari only asks for a passkey right on a tap.
+async function getOptions() {
+  options = null;
+  button.disabled = true;
+  try {
+    const response = await fetch("/desktop/sign_in/options", { method: "POST" });
+    const body = await response.json();
+    if (!response.ok) {
+      message.textContent = body.detail;
+      return;
+    }
+    options = body;
+    button.disabled = false;
+  } catch {
+    message.textContent = "Can't reach the computer right now.";
+  }
+}
+
+button.onclick = async () => {
+  message.textContent = "";
+  try {
+    const credential = await navigator.credentials.get({
+      publicKey: { challenge: unb64(options.challenge), rpId: options.rp_id, userVerification: "required", timeout: 120000 },
+    });
+    const response = await fetch("/desktop/sign_in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: b64(credential.rawId),
+        client_data: b64(credential.response.clientDataJSON),
+        authenticator_data: b64(credential.response.authenticatorData),
+        signature: b64(credential.response.signature),
+      }),
+    });
+    if (response.ok) {
+      location.href = "/desktop/";
+      return;
+    }
+    message.textContent = (await response.json()).detail;
+  } catch (error) {
+    message.textContent = error.name === "NotAllowedError" ? "Cancelled, or this device has no passkey for Seraph." : String(error);
+  }
+  getOptions();
+};
+
+getOptions();
+</script>
