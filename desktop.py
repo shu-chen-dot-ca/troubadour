@@ -16,9 +16,12 @@ Pointer positions come in as 0..1 of the screen and are sent in the stream's own
 2560x1600 here, also with fractional scaling).
 """
 
+import os
 import threading
+from pathlib import Path
 
 import gi
+from dotenv import load_dotenv
 
 gi.require_version("Gst", "1.0")
 from gi.repository import Gio, GLib, Gst
@@ -27,6 +30,8 @@ Gst.init(None)
 # D-Bus signals (the stream's PipeWire node, the session closing) and GStreamer bus messages arrive through GLib's
 # main loop, which runs on its own thread.
 threading.Thread(target=GLib.MainLoop().run, daemon=True).start()
+
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 
 REMOTE_DESKTOP = "org.gnome.Mutter.RemoteDesktop"
 SCREEN_CAST = "org.gnome.Mutter.ScreenCast"
@@ -37,8 +42,11 @@ SCROLL_FINISH = 1
 BUTTONS = {"left": 0x110, "right": 0x111, "middle": 0x112}
 # Frame width and JPEG quality for each Quality setting. None: the screen's real size.
 QUALITIES = {"low": (1280, 50), "medium": (1920, 60), "high": (None, 80)}
-MAX_FPS = 30
-VIRTUAL_SIZE = (1920, 1200)
+QUALITY = os.environ["QUALITY"]
+if QUALITY not in QUALITIES:
+    raise SystemExit("QUALITY in .env is low, medium or high.")
+MAX_FPS = int(os.environ["MAX_FPS"])
+VIRTUAL_SIZE = tuple(int(number) for number in os.environ["VIRTUAL_SIZE"].split("x"))
 
 
 class DesktopError(Exception):
@@ -49,7 +57,7 @@ class Desktop:
     def __init__(self):
         self.bus = Gio.bus_get_sync(Gio.BusType.SESSION)
         self.running = False
-        self.quality = "medium"
+        self.quality = QUALITY
         self.session = None
         self.stream = None
         self.pipeline = None

@@ -35,25 +35,28 @@ from pathlib import Path
 
 from aiohttp import WSMsgType, web
 from cryptography.exceptions import UnsupportedAlgorithm
+from dotenv import load_dotenv
 
 from desktop import Desktop, DesktopError
 from sign_in import COOKIE, DOMAIN, ORIGIN, SESSION_DAYS, SignIn, SignInError
 
-PORT = 8020
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
+
+PORT = int(os.environ["DESKTOP_PORT"])
 STATIC = Path(__file__).resolve().parent / "static"
 OPEN_PATHS = ["/desktop/sign_in", "/desktop/sign_in/options"]
 # Asked for without a sign in, these send to the Sign in page. Everything else answers 401.
 PAGES = ["/desktop", "/desktop/", "/desktop/terminal"]
 LOCAL_HOSTS = [f"localhost:{PORT}", f"127.0.0.1:{PORT}"]
 FRAMES_AHEAD = 2
-STOP_SECONDS = 10
+STOP_SECONDS = int(os.environ["STOP_SECONDS"])
 # How often an open viewer's sign in is checked again (a device removed in Seraph, a session over).
 CHECK_SECONDS = 30
 # Linux key codes go up to KEY_MAX.
 MAX_KEY_CODE = 0x2FF
 MAX_TEXT = 2000
 TMUX = shutil.which("tmux")
-TERMINAL_SESSION = "phone"
+TERMINAL_SESSION = os.environ["TERMINAL_SESSION"]
 
 desktop = Desktop()
 sign_in = SignIn()

@@ -16,16 +16,22 @@ phone ──► h.shuchen.ca ──► forwarder ──► Seraph's Caddy ──
 ## Run
 
 ```bash
-cp fedora-remote.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user start fedora-remote          # now
-systemctl --user enable fedora-remote         # also at every boot (with lingering on: loginctl enable-linger)
-journalctl --user -u fedora-remote -f         # log
+cp .env.example .env    # the settings: port, Seraph's .env, session length, quality, virtual monitor size
+./run.sh                # this folder's code in the foreground, with its log; Ctrl+C stops it
 ```
 
-It is enabled, and lingering is on, so it starts at boot before anyone logs in, like Seraph's `seraph-caddy` and `seraph-tunnel`.
+`./run.sh` starts the server again whenever a `.py` file or `.env` changes (the pages in `static/` need no restart, a reload in the browser does). The service below uses the same port, so `./run.sh` stops it while it runs and starts it again when you stop `./run.sh`.
 
-Or `python3 server.py` in the foreground. It uses the system Python (Fedora's `python3-gobject`, `python3-aiohttp`, `python3-cryptography`, GStreamer with `pipewire-gstreamer`).
+The service (`fedora-remote`) is what keeps it running away from the computer: it starts at boot, before anyone logs in (lingering is on), like Seraph's `seraph-caddy` and `seraph-tunnel`.
+
+```bash
+cp fedora-remote.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+systemctl --user enable --now fedora-remote   # now, and at every boot
+systemctl --user restart fedora-remote        # after changing the code or .env
+journalctl --user -u fedora-remote -f         # its log
+```
+
+It uses the system Python (Fedora's `python3-gobject`, `python3-aiohttp`, `python3-cryptography`, `python3-dotenv`, GStreamer with `pipewire-gstreamer`) and `tmux` for the terminal.
 
 ## On the phone
 
@@ -73,6 +79,7 @@ What keeps it reachable, and what still needs someone at the computer.
 - `desktop.py`: the screen (Mutter screen cast → PipeWire → GStreamer → JPEG) and input (Mutter remote desktop session).
 - `sign_in.py`: the passkey check, against Seraph's devices in `~/seraph/data/remote_access.json` (read only), and the desktop's sessions in `data/sessions.json`.
 - `server.py`: the web server, the screen's websocket and the terminal's.
+- `.env.example`: the settings, copied to `.env`. `run.sh`: run it here. `fedora-remote.service`: run it always.
 - `static/`: the viewer (`index.html`, `viewer.js`), the terminal (`terminal.html`, `terminal.js`, xterm.js in `vendor/`) and the Sign in page.
 
 ## Limits

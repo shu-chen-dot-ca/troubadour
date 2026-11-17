@@ -26,12 +26,16 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, padding
 from cryptography.hazmat.primitives.serialization import load_der_public_key
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-DATA_DIR = PROJECT_ROOT / "data"
-SERAPH_ENV = Path.home() / "seraph" / ".env"
+# override: what .env says wins over what the shell had, so a change applies at the next start.
+load_dotenv(PROJECT_ROOT / ".env", override=True)
+
+DATA_DIR = PROJECT_ROOT / os.environ["DATA_DIR"]
+SERAPH_ENV = Path(os.environ["SERAPH_ENV"]).expanduser()
 COOKIE = "desktop_session"
-SESSION_DAYS = 7
+SESSION_DAYS = int(os.environ["SESSION_DAYS"])
 CHALLENGE_SECONDS = 300
 CHALLENGES_MAX = 1000
 USER_PRESENT = 0x01
